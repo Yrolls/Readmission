@@ -1,0 +1,4 @@
+split,encounters,patients,% encounter
+train,63605,44791,64.0
+val,15962,11198,16.1
+test,19773,13998,19.9

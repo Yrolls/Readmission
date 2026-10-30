@@ -1,0 +1,7 @@
+,label_th,HR_30d,HR_30d_low,HR_30d_high,HR_H,HR_H_low,HR_H_high,sig_30d,sig_H
+discharge_group = Facility,ส่งต่อสถานพยาบาล,1.618,1.539,1.717,0.957,0.93,0.988,True,True
+discharge_group = Left AMA,ออก รพ. เอง (AMA),1.423,1.094,1.782,1.045,0.888,1.202,True,False
+metformin = Down,ลดขนาด metformin,1.358,1.003,1.809,1.057,0.928,1.226,True,False
+"number_inpatient (per visit, cap 5)",inpatient ก่อนหน้า,1.331,1.31,1.358,1.282,1.269,1.295,True,True
+"number_emergency (per visit, cap 5)",ER ก่อนหน้า,1.086,1.055,1.115,1.148,1.13,1.168,True,True
+diabetesMed = Yes,ได้ยาเบาหวาน,1.156,1.069,1.243,1.252,1.208,1.297,True,True

@@ -1,0 +1,7 @@
+,label_th,OR,CI_low,CI_high,significant
+"number_inpatient (per visit, cap 5)",เคย admit ก่อนหน้า (ต่อครั้ง),1.514,1.487,1.545,True
+diabetesMed = Yes,ได้ยาเบาหวาน,1.369,1.295,1.433,True
+"number_emergency (per visit, cap 5)",เคยมา ER (ต่อครั้ง),1.292,1.257,1.332,True
+max_glu_serum = >300,น้ำตาล > 300,1.256,1.053,1.5,True
+discharge_group = Home health,ส่งต่อ home health,1.159,1.103,1.235,True
+A1Cresult = Norm,A1C ปกติ,0.831,0.776,0.9,True

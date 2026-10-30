@@ -100,6 +100,7 @@ Readmission/
     ├── dashboard_app.py           ← หน้าเว็บ (Streamlit)
     ├── readmission_registry.py    ← ฐานข้อมูล SQLite + RiskEngine (คำนวณความเสี่ยง)
     ├── readmission_features.py    ← สำเนาเดียวกับใน notebook/
+    ├── validate_dashboard.py      ← ตรวจผลของ dashboard เทียบกับ notebook 15
     └── requirements.txt
 ```
 
@@ -121,18 +122,19 @@ Readmission/
 
 รันจากโฟลเดอร์ `notebook/` ตามลำดับนี้ notebook ส่วนใหญ่มีตัวแปร `LABEL_MODE` ในเซลล์แรก
 
-| ลำดับ | Notebook | `LABEL_MODE` | ได้อะไร | ใช้เวลาโดยประมาณ* |
-|---|---|---|---|---|
-| 1 | `11_relabel_any_readmission.ipynb` | `any` | `outputs/split_assignment.csv`, `outputs/11_any/`, `models/model_11_any.pkl` | 5–15 นาที |
-| 2 | `11_relabel_30d_readmission.ipynb` | `30d` | `outputs/11_30d/`, `models/model_11_30d.pkl` | 5–15 นาที |
-| 3 | `12_feature_analysis.ipynb` | `any` | `outputs/12_features_any/` (odds ratio, SHAP) | 10–20 นาที |
-| 4 | `13_survival_models.ipynb` | — | `outputs/13_survival/` | 10–20 นาที |
-| 5 | `13b_control_experiment.ipynb` | — | `outputs/13b_control/` | ไม่กี่นาที |
-| 6 | `15_final_model_any.ipynb` / `15_final_model_30d.ipynb` | `any` / `30d` | `models/final_*/`, `outputs/15_final_*/` | 15–40 นาทีต่อไฟล์ |
-| 7 | `14_lstm_sequence_any.ipynb` / `14_lstm_sequence_30d.ipynb` | `any` / `30d` | `outputs/14_lstm_*/` (ablation) | 20–60 นาทีต่อไฟล์ |
-| 8 | `python export_dashboard_artifacts.py` | — | `models/dashboard_artifacts.json` | 1–2 นาที |
+| ลำดับ | Notebook | `LABEL_MODE` | ได้อะไร |
+|---|---|---|---|
+| 1 | `11_relabel_any_readmission.ipynb` | `any` | `outputs/split_assignment.csv`, `outputs/11_any/`, `models/model_11_any.pkl` |
+| 2 | `11_relabel_30d_readmission.ipynb` | `30d` | `outputs/11_30d/`, `models/model_11_30d.pkl` |
+| 3 | `12_feature_analysis.ipynb` | `any` | `outputs/12_features_any/` (odds ratio, SHAP) |
+| 4 | `13_survival_models.ipynb` | — | `outputs/13_survival/` |
+| 5 | `13b_control_experiment.ipynb` | — | `outputs/13b_control/` |
+| 6 | `15_final_model_any.ipynb` / `15_final_model_30d.ipynb` | `any` / `30d` | `models/final_*/`, `outputs/15_final_*/` |
+| 7 | `14_lstm_sequence_any.ipynb` / `14_lstm_sequence_30d.ipynb` | `any` / `30d` | `outputs/14_lstm_*/` (ablation) |
+| 8 | `python export_dashboard_artifacts.py` | — | `models/dashboard_artifacts.json` |
+| 9 | `16_slide_figures.ipynb` | — | `outputs/16_slide_figures/` (กราฟ/ตารางทุกรูปในสไลด์ + ตรวจตัวเลขในสไลด์) |
 
-\*บน CPU ของโน้ตบุ๊ก ขึ้นกับเครื่อง
+LSTM ใน notebook 14 และ 15 เทรน 5 seed จึงใช้เวลานานที่สุดในชุดนี้
 
 - **ข้อ 1 ต้องรันก่อนเสมอ** เพราะสร้างไฟล์ `split_assignment.csv` ที่ทุก notebook ใช้แบ่ง train/val/test ชุดเดียวกัน (ไฟล์นี้อยู่ใน repo แล้ว ถ้าไม่แก้การแบ่งข้อมูลก็ใช้ของเดิมได้)
 - notebook 14 ตรวจว่าผลของตัวเองตรงกับ notebook 15 จึงควรรัน 15 ก่อน
@@ -183,6 +185,8 @@ hist = build_history_features(meta)                              # ตัวแ�
 | 📊 ผลการประเมิน | ความเสี่ยง 2 นิยาม, ปัจจัยที่มีผล (แดง = เพิ่ม, เขียว = ลด), แนวทางที่ควรพิจารณา (อ้างอิง AHRQ IDEAL, CMS, ADA) |
 
 ล้างข้อมูลผู้ป่วยทั้งหมด: ปิด streamlit แล้วลบไฟล์ `dashboard/patients.db`
+
+ตรวจว่า dashboard ให้ผลเท่ากับโมเดลใน notebook 15: `cd dashboard` แล้ว `python validate_dashboard.py` (สุ่มผู้ป่วย test 300 คนมาป้อนทีละ admit แล้วเทียบความเสี่ยงกับ `outputs/15_final_*/test_predictions.csv`)
 
 > Dashboard นี้เป็น proof-of-concept สำหรับการศึกษา **ไม่ใช่เครื่องมือวินิจฉัย** และห้ามใส่ข้อมูลผู้ป่วยจริง เพราะไม่มีระบบ login และไม่ได้ออกแบบตาม PDPA
 
