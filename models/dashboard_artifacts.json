@@ -1,0 +1,262 @@
+{
+ "top_specialties": [
+  "Cardiology",
+  "Emergency/Trauma",
+  "Family/GeneralPractice",
+  "InternalMedicine",
+  "Missing",
+  "Nephrology",
+  "Orthopedics",
+  "Orthopedics-Reconstructive",
+  "Radiologist",
+  "Surgery-General"
+ ],
+ "encoder_classes": {
+  "race": [
+   "AfricanAmerican",
+   "Asian",
+   "Caucasian",
+   "Hispanic",
+   "Missing",
+   "Other"
+  ],
+  "gender": [
+   "Female",
+   "Male"
+  ],
+  "medical_specialty": [
+   "Cardiology",
+   "Emergency/Trauma",
+   "Family/GeneralPractice",
+   "InternalMedicine",
+   "Missing",
+   "Nephrology",
+   "Orthopedics",
+   "Orthopedics-Reconstructive",
+   "Other",
+   "Radiologist",
+   "Surgery-General"
+  ],
+  "diag_1": [
+   "Circulatory",
+   "Diabetes",
+   "Digestive",
+   "Genitourinary",
+   "Injury",
+   "Missing",
+   "Musculoskeletal",
+   "Neoplasms",
+   "Other",
+   "Respiratory"
+  ],
+  "diag_2": [
+   "Circulatory",
+   "Diabetes",
+   "Digestive",
+   "Genitourinary",
+   "Injury",
+   "Missing",
+   "Musculoskeletal",
+   "Neoplasms",
+   "Other",
+   "Respiratory"
+  ],
+  "diag_3": [
+   "Circulatory",
+   "Diabetes",
+   "Digestive",
+   "Genitourinary",
+   "Injury",
+   "Missing",
+   "Musculoskeletal",
+   "Neoplasms",
+   "Other",
+   "Respiratory"
+  ],
+  "max_glu_serum": [
+   ">200",
+   ">300",
+   "None",
+   "Norm"
+  ],
+  "A1Cresult": [
+   ">7",
+   ">8",
+   "None",
+   "Norm"
+  ],
+  "metformin": [
+   "Down",
+   "No",
+   "Steady",
+   "Up"
+  ],
+  "repaglinide": [
+   "Down",
+   "No",
+   "Steady",
+   "Up"
+  ],
+  "nateglinide": [
+   "Down",
+   "No",
+   "Steady",
+   "Up"
+  ],
+  "chlorpropamide": [
+   "Down",
+   "No",
+   "Steady",
+   "Up"
+  ],
+  "glimepiride": [
+   "Down",
+   "No",
+   "Steady",
+   "Up"
+  ],
+  "acetohexamide": [
+   "No",
+   "Steady"
+  ],
+  "glipizide": [
+   "Down",
+   "No",
+   "Steady",
+   "Up"
+  ],
+  "glyburide": [
+   "Down",
+   "No",
+   "Steady",
+   "Up"
+  ],
+  "tolbutamide": [
+   "No",
+   "Steady"
+  ],
+  "pioglitazone": [
+   "Down",
+   "No",
+   "Steady",
+   "Up"
+  ],
+  "rosiglitazone": [
+   "Down",
+   "No",
+   "Steady",
+   "Up"
+  ],
+  "acarbose": [
+   "Down",
+   "No",
+   "Steady",
+   "Up"
+  ],
+  "miglitol": [
+   "Down",
+   "No",
+   "Steady",
+   "Up"
+  ],
+  "troglitazone": [
+   "No",
+   "Steady"
+  ],
+  "tolazamide": [
+   "No",
+   "Steady",
+   "Up"
+  ],
+  "insulin": [
+   "Down",
+   "No",
+   "Steady",
+   "Up"
+  ],
+  "glyburide-metformin": [
+   "Down",
+   "No",
+   "Steady",
+   "Up"
+  ],
+  "glipizide-metformin": [
+   "No",
+   "Steady"
+  ],
+  "glimepiride-pioglitazone": [
+   "No",
+   "Steady"
+  ],
+  "metformin-rosiglitazone": [
+   "No",
+   "Steady"
+  ],
+  "metformin-pioglitazone": [
+   "No",
+   "Steady"
+  ],
+  "change": [
+   "Ch",
+   "No"
+  ],
+  "diabetesMed": [
+   "No",
+   "Yes"
+  ]
+ },
+ "seen_ids": {
+  "admission_type_id": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8
+  ],
+  "discharge_disposition_id": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8,
+   9,
+   10,
+   12,
+   15,
+   16,
+   17,
+   18,
+   22,
+   23,
+   24,
+   25,
+   27,
+   28
+  ],
+  "admission_source_id": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8,
+   9,
+   10,
+   11,
+   13,
+   14,
+   17,
+   20,
+   22,
+   25
+  ]
+ }
+}

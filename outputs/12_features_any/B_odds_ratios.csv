@@ -1,0 +1,48 @@
+,OR,CI_low,CI_high,significant
+"number_inpatient (per visit, cap 5)",1.514,1.487,1.545,True
+admission_type_group = Unknown/Other,1.449,1.33,1.572,True
+diabetesMed = Yes,1.369,1.295,1.433,True
+"number_emergency (per visit, cap 5)",1.292,1.257,1.332,True
+max_glu_serum = >300,1.256,1.053,1.5,True
+discharge_group = Home health,1.159,1.103,1.235,True
+admission_type_group = Urgent,1.152,1.082,1.213,True
+"number_outpatient (per visit, cap 5)",1.118,1.099,1.14,True
+number_diagnoses (per 1),1.068,1.059,1.079,True
+metformin = Down,1.064,0.891,1.3,False
+age (per 10 y),1.042,1.03,1.054,True
+admission_type_group = Elective,1.03,0.956,1.1,False
+diag_1 = Diabetes,1.022,0.96,1.087,False
+time_in_hospital (per day),1.022,1.014,1.028,True
+insulin = Down,1.018,0.954,1.096,False
+discharge_group = Left AMA,1.018,0.806,1.231,False
+num_lab_procedures (per 10),1.01,1.0,1.02,True
+num_medications (per 5),1.005,0.99,1.021,False
+change = Ch,0.999,0.95,1.056,False
+num_procedures (per 1),0.967,0.956,0.978,True
+discharge_group = Facility,0.967,0.928,1.013,False
+race = AfricanAmerican,0.961,0.921,1.001,False
+gender = Male,0.959,0.928,0.988,True
+insulin = Up,0.955,0.893,1.042,False
+max_glu_serum = >200,0.934,0.807,1.089,False
+A1Cresult = >8,0.925,0.865,0.987,True
+diag_1 = Respiratory,0.918,0.871,0.973,True
+max_glu_serum = Norm,0.901,0.789,1.011,False
+insulin = Steady,0.884,0.842,0.928,True
+A1Cresult = >7,0.882,0.81,0.964,True
+discharge_group = Unknown/Other,0.881,0.809,0.966,True
+diag_1 = Digestive,0.868,0.82,0.924,True
+diag_1 = Other,0.862,0.815,0.912,True
+metformin = Steady,0.86,0.822,0.91,True
+metformin = Up,0.832,0.712,1.019,False
+A1Cresult = Norm,0.831,0.776,0.9,True
+admission_source_group = Referral,0.827,0.789,0.884,True
+race = Hispanic,0.82,0.718,0.914,True
+diag_1 = Musculoskeletal,0.814,0.757,0.882,True
+diag_1 = Injury,0.797,0.742,0.852,True
+diag_1 = Genitourinary,0.786,0.724,0.853,True
+race = Other,0.73,0.634,0.847,True
+race = Missing,0.686,0.62,0.769,True
+diag_1 = Neoplasms,0.681,0.623,0.752,True
+race = Asian,0.678,0.537,0.829,True
+admission_source_group = Unknown/Other,0.664,0.61,0.74,True
+admission_source_group = Transfer,0.49,0.457,0.532,True

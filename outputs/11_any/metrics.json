@@ -1,0 +1,17 @@
+{
+  "label_mode": "any",
+  "gb_model": "xgboost",
+  "n_test": 19773,
+  "base_rate": 0.4651,
+  "PR_AUC": 0.6365,
+  "ROC_AUC": 0.6806,
+  "Brier": 0.2239,
+  "Brier_skill_score": 0.1004,
+  "PR_AUC_lift": 1.37,
+  "precision_top5": 0.7976,
+  "lift_top5": 1.71,
+  "precision_top10": 0.7557,
+  "lift_top10": 1.62,
+  "precision_top20": 0.698,
+  "lift_top20": 1.5
+}

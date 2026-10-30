@@ -1,0 +1,53 @@
+{
+  "H_default": 365,
+  "point_metrics": {
+    "Stacking (trained on any)": {
+      "ROC_AUC_any": 0.6806,
+      "PR_AUC_any": 0.6365,
+      "ROC_AUC_30d": 0.6447,
+      "PR_AUC_30d": 0.1999,
+      "C_index": 0.6625
+    },
+    "Stacking (trained on 30d)": {
+      "ROC_AUC_any": 0.6459,
+      "PR_AUC_any": 0.6006,
+      "ROC_AUC_30d": 0.6745,
+      "PR_AUC_30d": 0.2146,
+      "C_index": 0.6405
+    },
+    "Grouped Cox PH": {
+      "ROC_AUC_any": 0.6729,
+      "PR_AUC_any": 0.6376,
+      "ROC_AUC_30d": 0.632,
+      "PR_AUC_30d": 0.1967,
+      "C_index": 0.6546
+    },
+    "XGBoost AFT (H=180)": {
+      "ROC_AUC_any": 0.6936,
+      "PR_AUC_any": 0.6579,
+      "ROC_AUC_30d": 0.6544,
+      "PR_AUC_30d": 0.2152,
+      "C_index": 0.6742
+    },
+    "XGBoost AFT (H=365)": {
+      "ROC_AUC_any": 0.6937,
+      "PR_AUC_any": 0.6585,
+      "ROC_AUC_30d": 0.6548,
+      "PR_AUC_30d": 0.2179,
+      "C_index": 0.6744
+    },
+    "XGBoost AFT (H=730)": {
+      "ROC_AUC_any": 0.6942,
+      "PR_AUC_any": 0.6589,
+      "ROC_AUC_30d": 0.6553,
+      "PR_AUC_30d": 0.218,
+      "C_index": 0.6748
+    }
+  },
+  "aft_sigma": {
+    "180": 1.0,
+    "365": 1.5,
+    "730": 2.0
+  },
+  "grouped_ph_converged": true
+}

@@ -1,0 +1,5 @@
+model,ROC_AUC,PR_AUC,ROC_AUC_first_visit,ROC_AUC_has_history
+A. XGBoost tuned,0.6946,0.6595,0.6618,0.6663
+B. XGBoost tuned + history,0.6969,0.6669,0.6621,0.6792
+C. LSTM K=1 (no sequence),0.6981,0.6638,0.6663,0.6706
+D. LSTM K=5,0.7014,0.6705,0.6666,0.6857

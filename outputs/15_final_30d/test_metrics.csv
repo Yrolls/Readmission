@@ -1,0 +1,6 @@
+,ROC_AUC,PR_AUC,Precision@top20%,ROC_AUC first visit,ROC_AUC has history,Lift@top20%
+Stacking (notebook 11),0.6745,0.2146,0.221,0.6452,0.6295,1.9477
+A. XGBoost tuned,0.6795,0.2339,0.2279,0.6504,0.6318,2.0079
+B. XGBoost + history,0.6845,0.2452,0.2342,0.6514,0.6546,2.0636
+D. LSTM K=5,0.6911,0.254,0.2377,0.6602,0.6642,2.0948
+FINAL: Blend (w_lstm=0.5),0.6918,0.2557,0.2403,0.6592,0.6667,2.1171

@@ -1,0 +1,48 @@
+,HR_30d,HR_H,ratio_30d_over_H
+admission_type_group = Unknown/Other,0.901,1.302,0.691
+diag_1 = Respiratory,0.79,0.939,0.842
+admission_type_group = Urgent,0.979,1.104,0.887
+metformin = Up,0.795,0.873,0.91
+diabetesMed = Yes,1.156,1.252,0.923
+"number_outpatient (per visit, cap 5)",0.996,1.074,0.927
+A1Cresult = >8,0.879,0.946,0.929
+admission_type_group = Elective,0.949,1.019,0.931
+change = Ch,0.932,1.001,0.931
+"number_emergency (per visit, cap 5)",1.086,1.148,0.946
+A1Cresult = >7,0.884,0.912,0.97
+diag_1 = Musculoskeletal,0.835,0.857,0.974
+number_diagnoses (per 1),1.032,1.05,0.983
+age (per 10 y),1.012,1.026,0.986
+diag_1 = Diabetes,1.003,1.009,0.994
+time_in_hospital (per day),1.01,1.016,0.994
+diag_1 = Digestive,0.901,0.906,0.994
+num_lab_procedures (per 10),1.014,1.006,1.007
+num_medications (per 5),1.014,1.006,1.008
+num_procedures (per 1),0.989,0.974,1.015
+max_glu_serum = >300,1.197,1.174,1.02
+diag_1 = Injury,0.871,0.852,1.021
+diag_1 = Genitourinary,0.861,0.839,1.027
+"number_inpatient (per visit, cap 5)",1.331,1.282,1.038
+discharge_group = Home health,1.149,1.103,1.042
+diag_1 = Other,0.953,0.904,1.055
+metformin = Steady,0.952,0.899,1.059
+A1Cresult = Norm,0.929,0.876,1.06
+race = AfricanAmerican,1.027,0.966,1.063
+gender = Male,1.035,0.97,1.066
+insulin = Steady,1.029,0.915,1.124
+insulin = Up,1.09,0.958,1.138
+race = Other,0.915,0.794,1.153
+insulin = Down,1.19,1.004,1.186
+admission_source_group = Referral,1.043,0.873,1.194
+max_glu_serum = Norm,1.126,0.938,1.201
+race = Hispanic,1.05,0.872,1.204
+admission_source_group = Unknown/Other,0.928,0.736,1.261
+race = Missing,0.928,0.733,1.266
+max_glu_serum = >200,1.228,0.967,1.269
+metformin = Down,1.358,1.057,1.285
+discharge_group = Left AMA,1.423,1.045,1.362
+diag_1 = Neoplasms,1.045,0.732,1.427
+race = Asian,1.044,0.728,1.433
+discharge_group = Unknown/Other,1.346,0.905,1.487
+admission_source_group = Transfer,0.872,0.585,1.492
+discharge_group = Facility,1.618,0.957,1.692

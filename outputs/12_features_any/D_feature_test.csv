@@ -1,0 +1,13 @@
+set,metric,mean,delta_vs_baseline,delta_sd,folds_improved,verdict
+baseline,ROC_AUC,0.679,0.0,0.0,0/5,—
+baseline,PR_AUC,0.6546,0.0,0.0,0/5,—
+discharge,ROC_AUC,0.6794,0.0004,0.0003,5/5,อยู่ในช่วง noise
+discharge,PR_AUC,0.6554,0.0008,0.0008,4/5,อยู่ในช่วง noise
+utilization,ROC_AUC,0.6793,0.0002,0.0006,3/5,อยู่ในช่วง noise
+utilization,PR_AUC,0.6547,0.0001,0.0009,2/5,อยู่ในช่วง noise
+insulin,ROC_AUC,0.679,-0.0,0.0001,2/5,อยู่ในช่วง noise
+insulin,PR_AUC,0.6546,0.0,0.0001,3/5,อยู่ในช่วง noise
+shap_pairs,ROC_AUC,0.6787,-0.0003,0.0006,1/5,อยู่ในช่วง noise
+shap_pairs,PR_AUC,0.6543,-0.0003,0.0008,1/5,อยู่ในช่วง noise
+all_new,ROC_AUC,0.6793,0.0002,0.0007,3/5,อยู่ในช่วง noise
+all_new,PR_AUC,0.6551,0.0006,0.0013,3/5,อยู่ในช่วง noise

@@ -1,0 +1,4 @@
+tier,n,observed_rate,mean_predicted,readmissions,% of patients,% of all readmissions captured,lift vs base
+High,3827,0.2407,0.23,921.0,19.3547,41.0428,2.1206
+Medium,6071,0.1176,0.1255,714.0,30.7035,31.8182,1.0363
+Low,9875,0.0617,0.0634,609.0,49.9418,27.139,0.5434

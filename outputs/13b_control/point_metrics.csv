@@ -1,0 +1,4 @@
+,ROC_AUC_any,PR_AUC_any,ROC_AUC_30d,PR_AUC_30d,C_index
+XGB AFT (survival),0.6937,0.6585,0.6548,0.2179,0.6744
+XGB binary tuned (any),0.6946,0.6595,0.6488,0.2111,0.6739
+XGB binary tuned (30d),0.6495,0.6084,0.6795,0.2339,0.6444

@@ -1,0 +1,3 @@
+group,n,base_rate,ROC_AUC,PR_AUC,% High,recall(High)
+Female,10726,0.4726,0.7055,0.6764,20.8092,0.3214
+Male,9047,0.4563,0.6995,0.669,17.9065,0.29

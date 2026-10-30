@@ -1,0 +1,18 @@
+{
+  "label_mode": "any",
+  "adopted_blocks": [],
+  "shap_pairs": [
+    [
+      "number_inpatient",
+      "total_prior_visits"
+    ],
+    [
+      "total_prior_visits",
+      "hospital_stay_x_inpatient"
+    ],
+    [
+      "admission_source_id",
+      "total_prior_visits"
+    ]
+  ]
+}
