@@ -1,249 +1,245 @@
-# การทำนายการกลับเข้ารักษาซ้ำของผู้ป่วยเบาหวาน (Hospital Readmission Prediction)
+# Explainable Hospital Readmission Prediction for Diabetic Patients
 
-โปรเจกต์สัมมนา: ทำนายว่าผู้ป่วยเบาหวานจะกลับมานอนโรงพยาบาลซ้ำหรือไม่ จากข้อมูล **Diabetes 130-US Hospitals (1999–2008)** ประมาณ 99,340 encounter หลังทำความสะอาดข้อมูล พร้อม dashboard สำหรับติดตามผู้ป่วยและประเมินความเสี่ยง
+ทำนายการกลับเข้ารักษาซ้ำของผู้ป่วยเบาหวาน จากประวัติการเข้ารับการรักษา พร้อม Clinical Decision Support Dashboard
+
+โปรเจกต์สัมมนา สาขาปัญญาประดิษฐ์ (AI) — 67070271 ยวิษฐา ทองเกลี้ยง · 67070295 อมลวรรณ แก้วสอาด
+อาจารย์ที่ปรึกษา: ผศ.ดร. พัฒนพงษ์ ฉันทมิตรโอภาส
 
 ---
 
 ## สารบัญ
-1. [สรุปสั้นที่สุด](#1-สรุปสั้นที่สุด)
-2. [โครงสร้างโฟลเดอร์](#2-โครงสร้างโฟลเดอร์)
-3. [Notebook แต่ละไฟล์: ทำอะไร ได้ผลอะไร](#3-notebook-แต่ละไฟล์-ทำอะไร-ได้ผลอะไร)
-4. [โมเดลที่เลือกใช้ และเหตุผล](#4-โมเดลที่เลือกใช้-และเหตุผล)
-5. [Dashboard: การติดตั้งและการรัน](#5-dashboard-การติดตั้งและการรัน)
-6. [Dashboard: การทำงาน](#6-dashboard-การทำงาน)
-7. [ข้อจำกัดที่ต้องรู้](#7-ข้อจำกัดที่ต้องรู้)
+1. [โปรเจกต์นี้ทำอะไร](#1-โปรเจกต์นี้ทำอะไร)
+2. [เริ่มใช้งานเร็วที่สุด: รัน dashboard](#2-เริ่มใช้งานเร็วที่สุด-รัน-dashboard)
+3. [ติดตั้ง](#3-ติดตั้ง)
+4. [โครงสร้างโฟลเดอร์](#4-โครงสร้างโฟลเดอร์)
+5. [รันการทดลองซ้ำ (notebook 11–15)](#5-รันการทดลองซ้ำ-notebook-1115)
+6. [ใช้โมเดลในโค้ดของคุณเอง](#6-ใช้โมเดลในโค้ดของคุณเอง)
+7. [วิธีใช้ dashboard](#7-วิธีใช้-dashboard)
+8. [ผลลัพธ์](#8-ผลลัพธ์)
+9. [ข้อจำกัด](#9-ข้อจำกัด)
+10. [แก้ปัญหาที่พบบ่อย](#10-แก้ปัญหาที่พบบ่อย)
+11. [อ้างอิง](#11-อ้างอิง)
 
 ---
 
-## 1. สรุปสั้นที่สุด
+## 1. โปรเจกต์นี้ทำอะไร
 
-- ทำนาย 2 แบบ: **กลับมาภายใน 30 วัน** (นิยามมาตรฐาน HRRP) และ **กลับมารักษาซ้ำเมื่อไรก็ได้** (label ใหม่ตามคำแนะนำอาจารย์)
-- โมเดลสุดท้าย: **Blend ของ LSTM + XGBoost ที่มีข้อมูลประวัติผู้ป่วย** (เลือกบน validation set ที่แยกไว้ ไม่ใช้ test)
+- **ข้อมูล**: [Diabetes 130-US Hospitals for Years 1999–2008](https://archive.ics.uci.edu/dataset/296/diabetes+130-us+hospitals+for+years+1999-2008) (UCI) 101,766 encounter → **99,340** หลังทำความสะอาด
+- **ทำนาย 2 นิยาม**
+  - `30d` — กลับมานอนโรงพยาบาลภายใน 30 วัน (นิยามมาตรฐาน HRRP) base rate 11.4%
+  - `any` — กลับมารักษาซ้ำเมื่อไรก็ได้ (`<30` หรือ `>30`) base rate 46.5%
+- **โมเดลสุดท้าย**: Blend ของ **LSTM** (อ่านประวัติการ admit 5 ครั้งล่าสุด) กับ **XGBoost + ตัวแปรประวัติ** แล้ว calibrate ด้วย isotonic regression และแบ่งความเสี่ยง 3 ระดับ (สูง 20% / ปานกลาง 30% / ต่ำ 50%)
+- **Dashboard** (Streamlit): ทะเบียนผู้ป่วย บันทึกการ admit ประเมินความเสี่ยงทั้ง 2 นิยาม อธิบายปัจจัยด้วย SHAP และรายชื่อผู้ป่วยที่ต้องติดตามหลังจำหน่าย
 
-| | กลับมารักษาซ้ำ (any) | ภายใน 30 วัน (30d) |
-|---|---|---|
-| ROC-AUC (95% CI) | **0.703** (0.694–0.711) | **0.692** (0.679–0.704) |
-| PR-AUC (base rate) | 0.673 (0.465) | 0.256 (0.114) |
-| ดีขึ้นจาก stacking เดิม | +0.023 ROC, +0.037 PR | +0.017 ROC, +0.041 PR |
-| กลุ่มเสี่ยงสูง (20% แรก) จับเคสได้ | 31% | 41% |
-
-- ข้อค้นพบหลัก: **ข้อมูลมีเพดาน (data ceiling)** ทุกโมเดลอยู่ในช่วง ROC-AUC 0.67–0.70 เพราะไม่มีข้อมูลหลังจำหน่าย (การกินยา การดูแลตัวเอง) สิ่งที่ช่วยขยับเพดานได้จริงคือ **ข้อมูลประวัติการ admit ของผู้ป่วย** ที่ได้จากการมองข้อมูลเป็นลำดับ (LSTM)
-- ปัญหาความเป็นธรรม: โมเดลแม่นน้อยที่สุดกับ **ผู้ป่วยอายุ 90+** (ROC-AUC 0.55–0.65 เทียบกับ ~0.70) เจอซ้ำทุกการทดลอง
+ข้อมูลทั้งหมดแบ่งตามผู้ป่วย (`patient_nbr`) ผู้ป่วย 1 คนอยู่ได้ชุดเดียว เพื่อกัน data leakage
 
 ---
 
-## 2. โครงสร้างโฟลเดอร์
+## 2. เริ่มใช้งานเร็วที่สุด: รัน dashboard
 
-```
-seminar-final/
-├── data/
-│   └── diabetic_data.csv              ← ข้อมูลดิบ
-├── notebook/                          ← notebook ทั้งหมด (รันจากโฟลเดอร์นี้)
-│   ├── 01_...ipynb – 15_...ipynb
-│   ├── readmission_features.py        ← cleaning + feature engineering ที่ใช้ร่วมกัน (notebook 12–15)
-│   └── export_dashboard_artifacts.py  ← รันครั้งเดียวก่อนใช้ dashboard
-├── outputs/                           ← ผลลัพธ์ของแต่ละ notebook (ตาราง, รูป, split_assignment.csv)
-├── models/                            ← โมเดลที่บันทึกไว้
-│   ├── final_any/                     ← โมเดลหลัก label any (จาก notebook 15)
-│   ├── final_30d/                     ← โมเดลหลัก label 30d (จาก notebook 15)
-│   └── dashboard_artifacts.json       ← จาก export_dashboard_artifacts.py
-└── dashboard/
-    ├── dashboard_app.py               ← หน้าเว็บ (Streamlit)
-    ├── readmission_registry.py        ← ฐานข้อมูลผู้ป่วย + การคำนวณความเสี่ยง
-    ├── readmission_features.py        ← สำเนาเดียวกับใน notebook/
-    ├── requirements.txt
-    └── patients.db                    ← สร้างอัตโนมัติตอนรันครั้งแรก
-```
+repo นี้มีโมเดลที่เทรนแล้ว (`models/final_30d/`, `models/final_any/`) จึงรัน dashboard ได้ทันทีโดยไม่ต้องเทรนใหม่
 
-> ⚠️ `readmission_features.py` มี 2 สำเนา (ใน `notebook/` และ `dashboard/`) ถ้าแก้ไฟล์หนึ่ง ต้องคัดลอกไปอีกที่ แล้วรัน `export_dashboard_artifacts.py` ใหม่ เพื่อตรวจว่า feature ของ dashboard ยังตรงกับตอนเทรน
-
----
-
-## 3. Notebook แต่ละไฟล์: ทำอะไร ได้ผลอะไร
-
-### ช่วงที่ 1: สร้าง pipeline หลัก (label 30 วัน)
-
-| Notebook | ทำอะไร | ผล/ข้อสรุป |
-|---|---|---|
-| `01_data_understanding` | สำรวจข้อมูล | — |
-| `02_preprocessing` | ทำความสะอาดข้อมูล: ตัด gender ที่ไม่ระบุ, ตัดผู้ป่วยที่เสียชีวิต/hospice (discharge 11, 13, 14, 19, 20, 21) | เหลือ ~99,340 encounter |
-| `03_model_preparation`, `04_model_training` | เตรียมข้อมูลและเทรนโมเดลรุ่นแรก | baseline |
-| `05_improved_pipeline*` | แบ่งข้อมูลด้วย **GroupShuffleSplit ตามผู้ป่วย** (กันผู้ป่วยคนเดียวอยู่ทั้ง train และ test), feature engineering, tune ด้วย RandomizedSearchCV | ได้ hyperparameter ของ RF + XGBoost |
-| `06_new_experiments` | เทียบเทคนิคแก้ imbalance (SMOTE, RUS, SMOTEENN ฯลฯ), ลอง LACE score, ตรวจ calibration, fairness | ไม่มีเทคนิคไหนชนะ `class_weight="balanced"`; LACE ไม่ช่วย |
-| `07_final_calibrated_pipeline` | Stacking (RF + XGBoost → Logistic Regression) + isotonic calibration + threshold | โมเดลหลัก**รุ่นเดิม** |
-| `08_feature_enrichment` | เพิ่ม Charlson Comorbidity Index, LACE v2, payer_code | PR-AUC เปลี่ยนแค่ −0.004 ถึง +0.002 → **พิสูจน์ data ceiling** |
-| `08_paper_replication_lu_uddin` | ทำซ้ำงานของ Lu & Uddin (2022) | การสุ่มแบ่งรายแถวทำให้ผู้ป่วย 6,632 คนอยู่ทั้ง train และ test (leakage) |
-| `08_discrete_time_hazard_model2` | *(โปรดเติมคำอธิบาย)* | |
-| `09_bootstrap_confidence_intervals` | CI 95% ด้วย bootstrap 2,000 รอบ รวมรายกลุ่มอายุ | gap ของกลุ่มอายุมากมีนัยสำคัญ (~0.56 vs ~0.70) |
-| `10_base_learner_comparison` | เทียบ base learner 7+ ตัว | ยืนยันการเลือก RF + XGBoost |
-
-### ช่วงที่ 2: ตามคำแนะนำอาจารย์ (4 ข้อ)
-
-อาจารย์แนะนำ: (1) เปลี่ยน label เป็น readmit ทุกช่วงเวลา, (2) หาความสัมพันธ์ของปัจจัยเพื่อเข้าใจโรค, (3) ลอง survival model, (4) ลอง LSTM
-
-| Notebook | ทำอะไร | ผล/ข้อสรุป |
-|---|---|---|
-| `11_advisor_data_cleaning_experiment` | *(โปรดเติมคำอธิบาย)* | |
-| `11_relabel_any_readmission` / `11_relabel_30d_readmission` | เปลี่ยน label (`<30` และ `>30` → 1) เทียบกับ label เดิม; แก้ inner CV ของ stacking เป็น GroupKFold; แบ่ง train/val/test ตามผู้ป่วยแล้วบันทึก `split_assignment.csv` ให้ทุก notebook ใช้ชุดเดียวกัน; เลือก threshold บน validation แทน test | ROC-AUC แทบเท่าเดิม (0.681 vs 0.675) PR-AUC ที่สูงขึ้น (0.64 vs 0.21) มาจาก base rate (47% vs 11%) ไม่ใช่โมเดลเก่งขึ้น; cost-optimal threshold ใช้กับ label ใหม่ไม่ได้ (แจ้งเตือน 99% ของผู้ป่วย) |
-| `12_feature_analysis` | วิเคราะห์ปัจจัย 4 ชั้น: อัตรา readmit รายกลุ่ม, odds ratio จาก logistic regression (CI แบบ cluster bootstrap), SHAP + interaction, ทดสอบ feature ใหม่ | **ประวัติการใช้บริการสำคัญที่สุด** (เคย admit ต่อครั้ง OR 1.51, ER ต่อครั้ง OR 1.29); การตรวจ A1C สัมพันธ์กับความเสี่ยงที่ต่ำลง (สอดคล้องกับ Strack et al. 2014); ทุกวิธีจัดอันดับตรงกัน (Spearman 0.76–0.83); logistic regression เกือบเท่า stacking (0.674 vs 0.681); feature ใหม่ไม่ช่วย |
-| `13_survival_models` | Grouped-time Cox PH (เขียน MLE เอง) และ XGBoost AFT สำหรับข้อมูลแบบ interval-censored (มีแค่ 3 ช่วง: <30, >30, NO) | **ปัจจัยเสี่ยงระยะสั้นกับระยะยาวต่างกัน** (สมมติฐาน PH ไม่จริง, Spearman 0.43) เช่น จำหน่ายไปสถานพยาบาล HR 1.62 ใน 30 วัน แต่ 0.96 ระยะยาว; XGBoost AFT ได้ ROC-AUC 0.694 ชนะ stacking |
-| `13b_control_experiment` | ทดสอบว่า AFT ชนะเพราะ survival หรือเพราะ tune ดีกว่า: เทรน XGBoost binary ด้วย hyperparameter เดียวกัน | binary ≈ AFT (ต่าง −0.0009, ไม่มีนัยสำคัญ) → **ผลดีขึ้นมาจากการ tune** stacking เดิม underfit (300 ต้นไม้, lr 0.01) |
-| `14_lstm_sequence` | LSTM บนลำดับ encounter ของผู้ป่วย แบบ ablation: XGBoost, XGBoost + history, LSTM K=1 (ไม่มีลำดับ), LSTM K=5 | ข้อมูลประวัติช่วยจริง (+0.002 ทั้งหมด, +0.013 ในกลุ่มที่มีประวัติ); **sequence modeling ช่วยจริง** (K=5 vs K=1: +0.0026); LSTM K=5 ได้ 0.700 เป็นโมเดลแรกที่เกิน 0.70 |
-| `15_final_model` (`_any`, `_30d`) | เลือกโมเดลสุดท้ายบน validation ที่แยกไว้ (val_sel), calibration, risk tier แบบ percentile, fairness, บันทึกโมเดลสำหรับ dashboard | ดูหัวข้อ 4 |
-
-### ไฟล์ .py ที่ใช้ร่วมกัน
-- `readmission_features.py`: cleaning + feature engineering ชุดเดียวที่ทุก notebook (12–15) และ dashboard ใช้ ตรวจแล้วว่าให้ผลตรงกับ pipeline เดิมทุกคอลัมน์
-- `export_dashboard_artifacts.py`: สร้างไฟล์ที่ dashboard ต้องใช้ และตรวจว่า feature ของ dashboard ตรงกับตอนเทรน
-
----
-
-## 4. โมเดลที่เลือกใช้ และเหตุผล
-
-### โมเดลสุดท้าย
-**Blend = w × LSTM + (1 − w) × XGBoost (+history features)** แล้ว calibrate ด้วย isotonic regression
-
-| | label any | label 30d |
-|---|---|---|
-| น้ำหนัก LSTM (w) | 0.7 | 0.5 |
-| XGBoost | ~1,100 ต้นไม้, lr 0.03, early stopping | ~900 ต้นไม้ |
-| LSTM | 5 seed เฉลี่ยกัน, ดูประวัติสูงสุด 4 ครั้งก่อนหน้า | เหมือนกัน |
-
-### ทำไมเลือกตัวนี้
-1. **ผลดีที่สุด** ตามเกณฑ์ของทีม (เลือกตัวที่ผลดีกว่า แม้จะเพียงเล็กน้อย) ชนะทุกโมเดลบน test อย่างมีนัยสำคัญใน label any
-2. **เลือกอย่างยุติธรรม**: แบ่ง validation เป็น val_es (early stopping) กับ val_sel (เลือกโมเดล) แล้ววัด test ครั้งเดียว ตัวที่ชนะบน val_sel ก็ชนะบน test จริง แปลว่าไม่ได้ overfit การเลือก
-3. **ใช้ข้อมูลที่โมเดลอื่นไม่ได้ใช้**: ประวัติการ admit และผลของครั้งก่อน ซึ่งเป็นสิ่งเดียวที่ขยับ data ceiling ได้
-4. **Probability เชื่อถือได้**: หลัง calibrate ค่าที่ทำนายต่างจากความจริงไม่เกิน ~2% ในทุก tier
-5. **XGBoost ในส่วนผสมช่วยอธิบายรายปัจจัยได้** (SHAP) ซึ่ง LSTM อย่างเดียวทำไม่ได้
-
-### ทำไมรายงานทั้ง 2 label
-- ตอบคำถามต่างกัน: 30 วัน = คุณภาพการดูแลช่วงรอยต่อ (ป้องกันได้มากกว่า) ส่วน any = ภาระโรคเรื้อรังโดยรวม
-- ปัจจัยเสี่ยงต่างกันจริง (notebook 13) และโมเดลที่เทรนด้วย label หนึ่งทำนายอีก label ได้แย่กว่าอย่างมีนัยสำคัญ
-- label 30d รวมความเสี่ยงไว้ในกลุ่มเล็กได้ดีกว่า (กลุ่มเสี่ยงสูงจับเคสได้ 41% vs 31%) เหมาะกับการคัดกรองเพื่อติดตามหลังจำหน่าย
-- ข้อจำกัดของ label any: "any" = readmit ที่ถูกบันทึกใน 130 โรงพยาบาลของ dataset ช่วงปี 1999–2008 เท่านั้น และระยะติดตามแต่ละคนไม่เท่ากัน
-
-### Risk tier
-แบ่งตามลำดับความเสี่ยง (ตัดบน val_sel): **สูง = 20% แรก, ปานกลาง = 30% ถัดไป, ต่ำ = ที่เหลือ** แทน threshold แบบ cost-optimal เพราะคุมภาระงานของทีมได้แน่นอน และกลุ่มสูงไม่เกิน 20% ตามเกณฑ์ alarm fatigue
-
-| Tier (test) | any: อัตรา readmit จริง | 30d: อัตรา readmit จริง |
-|---|---|---|
-| สูง | 73.4% | 24.1% |
-| ปานกลาง | 53.3% | 11.8% |
-| ต่ำ | 32.2% | 6.2% |
-| ค่าเฉลี่ยทั้งหมด | 46.5% | 11.4% |
-
-### สิ่งที่ลองแล้วไม่ใช้ (และเหตุผล)
-| วิธี | เหตุผลที่ไม่ใช้ |
-|---|---|
-| SMOTE และเทคนิค resampling อื่น | ไม่ชนะ `class_weight="balanced"` (notebook 06) |
-| Charlson, LACE, feature ใหม่จาก SHAP | ผลอยู่ในช่วง noise (notebook 08, 12) |
-| Stacking เดิม | underfit เมื่อเทียบกับ XGBoost ที่ tune ด้วย early stopping (notebook 13b) |
-| Survival model เป็นโมเดลหลัก | ไม่เพิ่มความแม่นยำเมื่อ tune เท่ากัน แต่ใช้เป็นผลเชิงความเข้าใจโรค (HR, PH check) |
-| Cost-optimal threshold | ใช้กับ label any ไม่ได้ (แจ้งเตือน ~99% ของผู้ป่วย) |
-
----
-
-## 5. Dashboard: การติดตั้งและการรัน
-
-### ขั้นที่ 0: ติดตั้ง library
 ```bash
-# ที่โฟลเดอร์ seminar-final (ใช้ virtual environment เดียวกับ notebook)
-pip install -r dashboard/requirements.txt (เรามีแล้ว ไม่ต้อง pip)
-```
-ต้องมี: streamlit, pandas, numpy, scikit-learn, joblib, xgboost, torch
-
-### ขั้นที่ 1: สร้างโมเดล (ข้ามได้ถ้ามี `models/final_any/` และ `models/final_30d/` แล้ว)
-รัน notebook ตามลำดับจากโฟลเดอร์ `notebook/`:
-1. `11_relabel_any_readmission.ipynb` (สร้าง `outputs/split_assignment.csv` และผลของ stacking ไว้เทียบ) — รันทั้ง `LABEL_MODE = "any"` และ `"30d"`
-2. `15_final_model.ipynb` — รันทั้ง `LABEL_MODE = "any"` และ `"30d"` → ได้ `models/final_any/` และ `models/final_30d/`
-
-### ขั้นที่ 2: สร้างไฟล์สำหรับ dashboard
-```bash
-cd notebook
-python export_dashboard_artifacts.py
-```
-ต้องเห็น:
-```
-✓ featurize_raw ตรงกับ load_prepared ทุกคอลัมน์
-✓ feature ของ XGBoost และ LSTM ตรงกับตอนเทรน (any)
-✓ feature ของ XGBoost และ LSTM ตรงกับตอนเทรน (30d)
-บันทึก ../models/dashboard_artifacts.json
-```
-ถ้าขึ้น error "หาไฟล์ไม่เจอ" ให้แก้ path 4 บรรทัดบนสุดของสคริปต์ให้ตรงกับโครงสร้างโฟลเดอร์
-
-### ขั้นที่ 3: รัน dashboard
-```bash
-cd ../dashboard
+git clone https://github.com/Yrolls/Readmission.git
+cd Readmission
+python -m venv .venv
+.venv\Scripts\activate            # macOS/Linux: source .venv/bin/activate
+pip install -r dashboard/requirements.txt
+cd dashboard
 streamlit run dashboard_app.py
 ```
-เปิดเบราว์เซอร์ที่ `http://localhost:8501` sidebar ต้องขึ้นกล่องสีเขียว **"โมเดลพร้อมใช้งาน"**
 
-ตำแหน่งโมเดลตั้งไว้ใน `dashboard_app.py` ส่วน CONFIG (อ้างอิงจากตำแหน่งไฟล์ จึงรันจากโฟลเดอร์ไหนก็ได้):
-```python
-APP_DIR = Path(__file__).resolve().parent
-DB_PATH = str(APP_DIR / "patients.db")
-MODEL_ROOT = str(APP_DIR.parent / "models")
+เปิดเบราว์เซอร์ที่ `http://localhost:8501` แถบด้านซ้าย (sidebar) ต้องขึ้นกล่องสีเขียว **"โมเดลพร้อมใช้งาน"**
+
+> Dashboard เริ่มต้นแบบว่าง ไม่มีข้อมูลผู้ป่วย ต้องลงทะเบียนผู้ป่วยเองก่อน (ดูหัวข้อ 7) ข้อมูลที่กรอกเก็บไว้ในไฟล์ `dashboard/patients.db` บนเครื่องของคุณเท่านั้น
+
+---
+
+## 3. ติดตั้ง
+
+**ต้องมี**: Python 3.11 ขึ้นไป (พัฒนาและทดสอบบน Python 3.13.1, Windows)
+
+| ใช้ทำอะไร | คำสั่ง |
+|---|---|
+| รัน dashboard อย่างเดียว | `pip install -r dashboard/requirements.txt` |
+| รัน notebook ทั้งหมด | `pip install -r requirements.txt` |
+
+`requirements.txt` ที่ root ล็อกเวอร์ชันทุก package ที่ใช้ตอนทำงาน (pip freeze) package หลัก:
+
+| Package | เวอร์ชัน | ใช้ใน |
+|---|---|---|
+| numpy / pandas / scikit-learn | 2.4.6 / 2.3.3 / 1.9.0 | ทุกส่วน |
+| xgboost | 3.3.0 | โมเดลหลัก, survival (AFT), SHAP |
+| torch | 2.13.0 | LSTM |
+| streamlit | 1.60.0 | dashboard |
+| shap / lifelines / imbalanced-learn / sdv | 0.52.0 / 0.30.3 / 0.14.2 / 1.38.1 | notebook 06–12 |
+
+> `requirements.txt` ถูกบันทึกจาก PowerShell เป็นไฟล์ UTF-16 ซึ่ง pip อ่านได้ปกติ แต่ถ้าเครื่องมืออื่นอ่านไม่ออก ให้แปลงเป็น UTF-8 ก่อน
+> torch ขนาดใหญ่ ถ้าไม่มี GPU ติดตั้งรุ่น CPU ได้: `pip install torch --index-url https://download.pytorch.org/whl/cpu`
+
+---
+
+## 4. โครงสร้างโฟลเดอร์
+
+```
+Readmission/
+├── data/
+│   ├── diabetic_data.csv          ← ข้อมูลดิบจาก UCI (ใช้ไฟล์นี้ไฟล์เดียวใน notebook 11–15)
+│   └── IDS_mapping.csv            ← ความหมายของรหัส admission/discharge
+├── notebook/                      ← รัน notebook จากโฟลเดอร์นี้ (path ทั้งหมดเป็นแบบ ../)
+│   ├── 01_… – 10_…ipynb           ← รุ่นแรก (Stacking) เก็บไว้เป็นประวัติการทดลอง
+│   ├── 11_… – 15_…ipynb           ← pipeline ปัจจุบัน
+│   ├── readmission_features.py    ← cleaning + feature engineering ที่ทุก notebook ใช้ร่วมกัน
+│   └── export_dashboard_artifacts.py
+├── outputs/                       ← ผลของแต่ละ notebook (ตาราง CSV, รูป, split_assignment.csv)
+├── models/
+│   ├── final_30d/                 ← โมเดลหลัก นิยาม 30 วัน
+│   ├── final_any/                 ← โมเดลหลัก นิยาม any
+│   └── dashboard_artifacts.json   ← ข้อมูลที่ dashboard ต้องใช้
+└── dashboard/
+    ├── dashboard_app.py           ← หน้าเว็บ (Streamlit)
+    ├── readmission_registry.py    ← ฐานข้อมูล SQLite + RiskEngine (คำนวณความเสี่ยง)
+    ├── readmission_features.py    ← สำเนาเดียวกับใน notebook/
+    └── requirements.txt
 ```
 
-### ปัญหาที่เคยเจอ
+ในแต่ละโฟลเดอร์ `models/final_*` มี:
+
+| ไฟล์ | เนื้อหา |
+|---|---|
+| `xgb_history.json` | XGBoost + ตัวแปรประวัติ |
+| `lstm_seed0.pt` … `lstm_seed4.pt` | LSTM 5 seed (นำค่าทำนายมาเฉลี่ยกัน) |
+| `final_bundle.pkl` | น้ำหนัก blend, isotonic calibrator, จุดตัด risk tier, ค่า mean/SD สำหรับ normalize, รายชื่อ feature |
+
+**ไฟล์ที่ไม่ได้อยู่ใน repo** (ใหญ่เกินไป ดู `.gitignore`): `data/*.pkl`, `models/*.pkl` ระดับบนสุด (โมเดลรุ่นเก่าจาก notebook 04–11) และ `dashboard/patients.db` — สร้างใหม่ได้โดยรัน notebook ตามหัวข้อ 5
+
+> ⚠️ `readmission_features.py` มี 2 สำเนา (ใน `notebook/` และ `dashboard/`) ถ้าแก้ไฟล์หนึ่ง ต้องคัดลอกไปอีกที่ แล้วรัน `export_dashboard_artifacts.py` ใหม่
+
+---
+
+## 5. รันการทดลองซ้ำ (notebook 11–15)
+
+รันจากโฟลเดอร์ `notebook/` ตามลำดับนี้ notebook ส่วนใหญ่มีตัวแปร `LABEL_MODE` ในเซลล์แรก
+
+| ลำดับ | Notebook | `LABEL_MODE` | ได้อะไร | ใช้เวลาโดยประมาณ* |
+|---|---|---|---|---|
+| 1 | `11_relabel_any_readmission.ipynb` | `any` | `outputs/split_assignment.csv`, `outputs/11_any/`, `models/model_11_any.pkl` | 5–15 นาที |
+| 2 | `11_relabel_30d_readmission.ipynb` | `30d` | `outputs/11_30d/`, `models/model_11_30d.pkl` | 5–15 นาที |
+| 3 | `12_feature_analysis.ipynb` | `any` | `outputs/12_features_any/` (odds ratio, SHAP) | 10–20 นาที |
+| 4 | `13_survival_models.ipynb` | — | `outputs/13_survival/` | 10–20 นาที |
+| 5 | `13b_control_experiment.ipynb` | — | `outputs/13b_control/` | ไม่กี่นาที |
+| 6 | `15_final_model_any.ipynb` / `15_final_model_30d.ipynb` | `any` / `30d` | `models/final_*/`, `outputs/15_final_*/` | 15–40 นาทีต่อไฟล์ |
+| 7 | `14_lstm_sequence_any.ipynb` / `14_lstm_sequence_30d.ipynb` | `any` / `30d` | `outputs/14_lstm_*/` (ablation) | 20–60 นาทีต่อไฟล์ |
+| 8 | `python export_dashboard_artifacts.py` | — | `models/dashboard_artifacts.json` | 1–2 นาที |
+
+\*บน CPU ของโน้ตบุ๊ก ขึ้นกับเครื่อง
+
+- **ข้อ 1 ต้องรันก่อนเสมอ** เพราะสร้างไฟล์ `split_assignment.csv` ที่ทุก notebook ใช้แบ่ง train/val/test ชุดเดียวกัน (ไฟล์นี้อยู่ใน repo แล้ว ถ้าไม่แก้การแบ่งข้อมูลก็ใช้ของเดิมได้)
+- notebook 14 ตรวจว่าผลของตัวเองตรงกับ notebook 15 จึงควรรัน 15 ก่อน
+- ถ้ารันข้อ 8 สำเร็จ ต้องเห็นข้อความ:
+  ```
+  ✓ featurize_raw ตรงกับ load_prepared ทุกคอลัมน์
+  ✓ feature ของ XGBoost และ LSTM ตรงกับตอนเทรน (any)
+  ✓ feature ของ XGBoost และ LSTM ตรงกับตอนเทรน (30d)
+  ```
+- ทุก notebook ตั้ง `RANDOM_STATE = 42` ผลควรตรงกับในตารางหัวข้อ 8 แต่ LSTM อาจต่างในทศนิยมตำแหน่งที่ 4 ถ้ารันบนเครื่องหรือเวอร์ชัน torch ต่างกัน
+
+**Notebook 01–10** เป็นการทดลองรุ่นแรก (Stacking RF + XGBoost, เปรียบเทียบ SMOTE, Charlson/LACE, bootstrap CI) บางไฟล์ต้องใช้ไฟล์ `.pkl` ที่ไม่ได้อยู่ใน repo ต้องรันตามลำดับเลขเพื่อสร้างใหม่ ไม่จำเป็นสำหรับผลสุดท้าย
+
+---
+
+## 6. ใช้โมเดลในโค้ดของคุณเอง
+
+ฟังก์ชันใน `readmission_features.py` ใช้ได้โดยตรง:
+
+```python
+from readmission_features import load_prepared, attach_split, build_history_features
+
+# X = feature ที่ encode แล้ว, y = label, groups = patient_nbr, meta = encounter_id + label ดิบ
+X, y, groups, meta, readable = load_prepared("../data/diabetic_data.csv", label_mode="30d")
+split = attach_split(meta, "../outputs/split_assignment.csv")   # 'train' / 'val' / 'test' ต่อแถว
+hist = build_history_features(meta)                              # ตัวแปรประวัติ 5 ตัว
+```
+
+ทำนายความเสี่ยงของผู้ป่วยรายใหม่ ให้ใช้ `RiskEngine` ใน `dashboard/readmission_registry.py` (โหลดโมเดลทั้ง 2 นิยาม คำนวณ feature จากประวัติ แล้วคืนค่าความน่าจะเป็น ระดับความเสี่ยง และปัจจัย SHAP) ดูตัวอย่างการเรียกใช้ใน `dashboard_app.py` ฟังก์ชัน `assess_and_save`
+
+ข้อมูลที่ส่งเข้าต้องมีคอลัมน์แบบเดียวกับ `diabetic_data.csv` และใช้ได้เฉพาะรหัสที่โมเดลเคยเห็นตอนเทรน ค่าใหม่จะเกิด `ValueError`
+
+---
+
+## 7. วิธีใช้ dashboard
+
+1. **ลงทะเบียนผู้ป่วย** (sidebar → ➕): HN, ชื่อ, ปีเกิด, เพศ, เชื้อชาติ
+2. **เปิดการ admit**: กรอกข้อมูลแรกรับ (ประเภทการเข้ารักษา, แผนก, จำนวน lab/ยา/การวินิจฉัย, ประวัติ 12 เดือน, กลุ่มโรค, ผลตรวจ, ยาเบาหวาน, วันนอนที่คาดไว้) → ระบบแสดงผลการประเมินทันที
+3. **อัปเดตอาการ** (หน้าผู้ป่วย → แท็บ 📝): แก้ข้อมูลเมื่อมีผลตรวจใหม่ ระบบประเมินใหม่และเก็บเป็นกราฟแนวโน้ม
+4. **จำหน่าย** (แท็บ 🏁): ใส่วันที่และปลายทาง → ผลครั้งสุดท้ายใช้วางแผนติดตาม
+5. **ผู้ป่วยกลับมาอีก**: เปิด admit ใหม่ ระบบคำนวณเองว่ากลับมากี่วันหลังจำหน่าย และใช้ประวัติทั้งหมดในการประเมิน
+
+| หน้า | แสดงอะไร |
+|---|---|
+| 📋 รายชื่อผู้ป่วย | ผู้ป่วยทุกคน สถานะ ความเสี่ยงล่าสุด ค้นหาด้วย HN/ชื่อ |
+| 🔔 ผู้ป่วยที่ต้องติดตาม | ผู้ที่จำหน่ายภายใน 30 วันและยังไม่กลับมา เรียงตามความเร่งด่วน |
+| 👤 หน้าผู้ป่วย | การ admit ปัจจุบัน ประวัติทุกครั้ง กราฟแนวโน้ม แก้ไข/ลบข้อมูล |
+| 📊 ผลการประเมิน | ความเสี่ยง 2 นิยาม, ปัจจัยที่มีผล (แดง = เพิ่ม, เขียว = ลด), แนวทางที่ควรพิจารณา (อ้างอิง AHRQ IDEAL, CMS, ADA) |
+
+ล้างข้อมูลผู้ป่วยทั้งหมด: ปิด streamlit แล้วลบไฟล์ `dashboard/patients.db`
+
+> Dashboard นี้เป็น proof-of-concept สำหรับการศึกษา **ไม่ใช่เครื่องมือวินิจฉัย** และห้ามใส่ข้อมูลผู้ป่วยจริง เพราะไม่มีระบบ login และไม่ได้ออกแบบตาม PDPA
+
+---
+
+## 8. ผลลัพธ์
+
+ผลบน test set (19,773 encounter, ผู้ป่วยที่โมเดลไม่เคยเห็น) CI 95% จาก cluster bootstrap ตามผู้ป่วย
+
+| | นิยาม 30 วัน | นิยาม any |
+|---|---|---|
+| ROC-AUC | **0.692** (0.679–0.704) | **0.703** (0.694–0.711) |
+| PR-AUC (base rate) | 0.256 (0.114) | 0.673 (0.465) |
+| ดีกว่า Stacking รุ่นแรก | +0.017 ROC-AUC | +0.023 ROC-AUC |
+| กลุ่มเสี่ยงสูง (20% แรก) กลับมาจริง | 24.1% (2.1 เท่าของค่าเฉลี่ย) | 73.4% |
+| สัดส่วนผู้ที่กลับมาทั้งหมดที่อยู่ในกลุ่มเสี่ยงสูง | 41% | 31% |
+| น้ำหนัก LSTM ใน blend | 0.5 | 0.7 |
+
+ข้อค้นพบหลัก:
+- ทุกโมเดลอยู่ในช่วง ROC-AUC 0.67–0.70 ข้อมูลมีแต่สิ่งที่เกิดในโรงพยาบาล ความแม่นยำจึงมีเพดาน
+- ปัจจัยที่สัมพันธ์มากที่สุดคือประวัติการใช้บริการ: เคย admit ต่อครั้ง OR 1.51, เคยมา ER ต่อครั้ง OR 1.29
+- ปัจจัยระยะสั้นกับระยะยาวต่างกัน: ส่งต่อสถานพยาบาล HR 1.62 ใน 30 วันแรก แต่ 0.96 ระยะยาว
+- ตัวแปรประวัติจากการมองข้อมูลเป็นลำดับ (LSTM) เป็นสิ่งเดียวที่ขยับผลได้อย่างมีนัยสำคัญ
+
+ตารางผลทั้งหมดอยู่ใน `outputs/15_final_30d/` และ `outputs/15_final_any/`
+
+---
+
+## 9. ข้อจำกัด
+
+- **ไม่มีข้อมูลหลังจำหน่าย** (การกินยา การมาตามนัด) ใช้จัดลำดับความสำคัญการติดตามได้ แต่ไม่แม่นพอจะใช้แทนการประเมินของแพทย์
+- **ไม่มีวันที่จริง**: เรียงลำดับ encounter ด้วย `encounter_id` (สมมติว่าเรียงตามเวลา) และ label มีแค่ 3 ช่วง (`<30`, `>30`, `NO`)
+- **ความเป็นธรรม**: ผู้ป่วยอายุ 90+ ได้ความแม่นยำต่ำสุด (ROC-AUC 0.553 ในนิยาม 30 วัน) dashboard จึงแสดงคำเตือนตั้งแต่อายุ 80 ปี
+- **ยังไม่มี external validation**: เทรนและทดสอบด้วยข้อมูลโรงพยาบาลสหรัฐฯ ปี 1999–2008 (ICD-9) ชุดเดียว การใช้ในบริบทอื่นต้องทดสอบใหม่
+- **คำอธิบาย SHAP เป็นค่าประมาณ**: คำนวณจากส่วน XGBoost ของ blend เท่านั้น และบอกว่าโมเดลใช้อะไร ไม่ได้บอกเหตุและผลทางการแพทย์
+- **Dashboard**: ใช้บนคอมพิวเตอร์เท่านั้น (ยังไม่รองรับมือถือ), ฐานข้อมูลอยู่บนเครื่องเดียว, ไม่เชื่อมต่อระบบ HIS
+
+---
+
+## 10. แก้ปัญหาที่พบบ่อย
+
 | อาการ | วิธีแก้ |
 |---|---|
-| sidebar แดง "โหลดโมเดลไม่สำเร็จ" | กด "รายละเอียด" ดู path ที่หาไม่เจอ แล้วแก้ `MODEL_ROOT`; แก้แล้วต้อง Ctrl+C และรัน streamlit ใหม่ (ล้าง cache) |
-| `File does not exist: dashboard_app.py` | รันคำสั่งผิดโฟลเดอร์ ต้อง `cd dashboard` ก่อน |
-| ไม่เห็นปุ่มเมนู | sidebar ถูกพับ กด **»** มุมซ้ายบน |
-| notebook ขึ้นเตือน `Import "notebook.dashboard.readmission_features"` | VS Code แก้ import ให้อัตโนมัติตอนย้ายไฟล์ แก้กลับเป็น `from readmission_features import ...` |
-| อยากล้างข้อมูลผู้ป่วยทั้งหมด | ปิด streamlit แล้วลบ `dashboard/patients.db` |
+| sidebar แดง "โหลดโมเดลไม่สำเร็จ" | กด "รายละเอียด" ดู path ที่หาไม่เจอ ตรวจว่ามี `models/final_30d/`, `models/final_any/` และ `models/dashboard_artifacts.json` แล้ว Ctrl+C รัน streamlit ใหม่ |
+| `File does not exist: dashboard_app.py` | ต้อง `cd dashboard` ก่อนรัน |
+| ไม่เห็นเมนู | sidebar ถูกพับ กด **»** มุมซ้ายบน |
+| `ModuleNotFoundError: readmission_features` | รัน notebook จากโฟลเดอร์ `notebook/` (ไฟล์ .py ต้องอยู่โฟลเดอร์เดียวกัน) |
+| `encounter บางตัวไม่มีใน split_assignment.csv` | รัน `11_relabel_any_readmission.ipynb` ใหม่ |
+| VS Code เปลี่ยน import เป็น `notebook.dashboard.readmission_features` | แก้กลับเป็น `from readmission_features import ...` |
+| `ค่า {...} ในคอลัมน์ ... ไม่เคยพบตอนเทรน` | ข้อมูลที่ส่งเข้ามีรหัสที่โมเดลไม่รู้จัก ใช้ได้เฉพาะค่าที่อยู่ใน `dashboard_artifacts.json` |
 
 ---
 
-## 6. Dashboard: การทำงาน
+## 11. อ้างอิง
 
-### แนวคิด
-ทำงานเหมือนเวชระเบียนขนาดเล็ก: เริ่มต้นว่าง แพทย์ลงทะเบียนผู้ป่วย บันทึกการ admit อัปเดตอาการระหว่างนอนโรงพยาบาล และจำหน่าย ระบบประเมินความเสี่ยงทุกครั้งที่บันทึก **ยิ่งผู้ป่วยมีประวัติในระบบมาก LSTM ยิ่งมีข้อมูลใช้ประเมินมาก**
-
-### ขั้นตอนการใช้งาน
-1. **ลงทะเบียนผู้ป่วย** (sidebar → ➕): HN, ชื่อ, ปีเกิด (ระบบคำนวณช่วงอายุเองจากวันที่ admit), เพศ, เชื้อชาติ
-2. **เปิดการ admit**: เลือกวันที่ กรอกข้อมูลแรกรับ (ประเภทการเข้ารักษา, แผนก, จำนวน lab/ยา/การวินิจฉัย, ประวัติ 12 เดือนก่อน, กลุ่มโรค, ผลตรวจ, ยาเบาหวาน, วันนอนที่คาดไว้) → ระบบพาไปหน้าผลการประเมิน
-3. **อัปเดตอาการ** (หน้าผู้ป่วย → แท็บ 📝): แก้ข้อมูลเมื่อมีผลตรวจใหม่หรือปรับยา ประเมินใหม่ทุกครั้งและเก็บเป็นกราฟแนวโน้ม
-4. **จำหน่าย** (แท็บ 🏁): ใส่วันที่และปลายทาง → ประเมินครั้งสุดท้าย ใช้วางแผนติดตาม
-5. **ผู้ป่วยกลับมาอีก**: เปิด admit ใหม่ ระบบคำนวณเองว่ากลับมากี่วัน (≤30 วัน = readmission 30 วัน) เติมข้อมูลจากครั้งก่อนให้ และใช้ประวัติทั้งหมดในการประเมิน
-
-### หน้าต่างๆ
-| หน้า | เนื้อหา |
-|---|---|
-| **📋 รายชื่อผู้ป่วย** (หน้า home) | ผู้ป่วยทุกคน สถานะ ความเสี่ยงล่าสุด ค้นหาด้วย HN/ชื่อ |
-| **🔔 ผู้ป่วยที่ต้องติดตาม** | ผู้ป่วยที่จำหน่ายภายใน 30 วันและยังไม่กลับมา เรียงตามความเร่งด่วน พร้อมสิ่งที่ควรทำ ตัวเลขบนปุ่มใน sidebar = จำนวนผู้ป่วยเสี่ยงสูงที่ควรติดต่อภายใน 7 วัน; ส่วนทบทวนแสดงผู้ป่วยที่กลับมาแล้วเทียบกับที่ระบบประเมินไว้ |
-| **➕ ลงทะเบียน** | ฟอร์มผู้ป่วยใหม่ (กัน HN ซ้ำ) |
-| **👤 หน้าผู้ป่วย** | การ admit ปัจจุบัน (อัปเดต/จำหน่าย), สรุปผลล่าสุด, ประวัติการรักษาทุกครั้ง (เทียบความเสี่ยงกับผลลัพธ์จริง), กราฟแนวโน้ม, ⚙️ แก้ไข/ลบข้อมูล |
-| **📊 ผลการประเมิน** | รายละเอียดเต็มของการประเมิน (ด้านล่าง) |
-
-### ผลการประเมินแสดงอะไรบ้าง
-- **สองตัวเลขคู่กัน**: ความเสี่ยงกลับมาภายใน 30 วัน และความเสี่ยงกลับมารักษาซ้ำ แต่ละตัวมีระดับ (สูง/ปานกลาง/ต่ำ) และบอกว่าผู้ป่วยในระดับนั้นกลับมาจริงกี่ %
-- **ปัจจัยที่มีผล**: กราฟแท่ง แดง = เพิ่มความเสี่ยง, เขียว = ลด พร้อมค่าจริงของผู้ป่วย (คำนวณ SHAP จากส่วน XGBoost จึงเป็นคำอธิบายโดยประมาณ)
-- **แนวทางที่ควรพิจารณา**: ตามความเสี่ยง 30 วัน (อ้างอิง AHRQ IDEAL, CMS) และแนวทางระยะยาวเมื่อความเสี่ยงรักษาซ้ำสูง (DSMES, ADA)
-- **คำเตือน**: ผู้ป่วยอายุ 80+ (โมเดลแม่นน้อยกว่าและมีแนวโน้มประเมินต่ำกว่าจริง); ผลระหว่างนอนโรงพยาบาลเป็นผลเบื้องต้น
-
-### รายละเอียดการคำนวณที่ควรรู้
-- **ประวัติผู้ป่วย**: ผลของการ admit ครั้งก่อน (<30 / >30 วัน) คำนวณจากวันจำหน่ายกับวันที่ admit ครั้งถัดไปโดยอัตโนมัติ
-- **วันนอนระหว่างนอนโรงพยาบาล**: โมเดลเรียนรู้จากวันนอนทั้งหมดตอนจำหน่าย ระหว่างนอนจึงใช้ค่าที่มากกว่าระหว่าง "วันนอนจนถึงวันนี้" กับ "วันนอนที่คาดไว้" พอจำหน่ายแล้วใช้วันนอนจริง
-- **การปรับยา**: ให้แพทย์ยืนยันเองได้ เพราะใน dataset "มีการปรับยา" รวมการเปลี่ยนชนิดยาด้วย ไม่ใช่แค่ปรับขนาด
-- **ตัวเลือกในฟอร์ม**: แสดงเฉพาะรหัสที่โมเดลเคยเห็นตอนเทรน
-- **การลบ**: ลบการ admit ได้เฉพาะครั้งล่าสุด (กันลำดับประวัติผิด), ลบผู้ป่วยต้องพิมพ์ HN ยืนยัน
-
-### ไฟล์ของ dashboard
-| ไฟล์ | หน้าที่ |
-|---|---|
-| `dashboard_app.py` | หน้าเว็บทั้งหมด (Streamlit) |
-| `readmission_registry.py` | `Registry` = ฐานข้อมูล SQLite (patients, encounters, assessments); `RiskEngine` = โหลดโมเดลทั้ง 2 label และคำนวณความเสี่ยงจากประวัติในระบบ |
-| `readmission_features.py` | feature engineering ชุดเดียวกับตอนเทรน |
-| `patients.db` | ข้อมูลผู้ป่วย (สร้างอัตโนมัติ) |
-
----
-
-## 7. ข้อจำกัดที่ต้องรู้
-
-- **Data ceiling**: ข้อมูลมีแต่สิ่งที่เกิดในโรงพยาบาล ไม่มีข้อมูลหลังจำหน่าย ความแม่นยำจึงอยู่ราว ROC-AUC 0.70 ใช้จัดลำดับความสำคัญได้ แต่ไม่แม่นพอจะใช้แทนการประเมินของแพทย์
-- **ความเป็นธรรม**: ผู้ป่วยอายุ 90+ ได้ความแม่นยำต่ำสุด และถูกจัดเป็นกลุ่มเสี่ยงสูงน้อยกว่าที่ควร; label 30d มี gap ระหว่างเพศ (หญิง 0.702 vs ชาย 0.681)
-- **ลำดับเวลา**: dataset ไม่มีวันที่ การเรียงลำดับ encounter ใช้ `encounter_id` (สมมติว่าเรียงตามเวลา)
-- **Label any**: นับเฉพาะ readmission ที่ถูกบันทึกใน dataset ระยะติดตามแต่ละคนไม่เท่ากัน
-- **ความแตกต่างของบริบท**: โมเดลเทรนจากโรงพยาบาลในสหรัฐฯ ปี 1999–2008 การใช้งานจริงในบริบทอื่นต้องทดสอบใหม่
-- **Dashboard เป็น proof-of-concept**: ข้อมูลเก็บในไฟล์บนเครื่อง ไม่มีระบบ login การใช้งานจริงต้องมีระบบรักษาความปลอดภัยและปฏิบัติตาม PDPA
+- Strack, B. et al. (2014). Impact of HbA1c Measurement on Hospital Readmission Rates: Analysis of 70,000 Clinical Database Patient Records. *BioMed Research International*.
+- Lu, H. & Uddin, S. (2022). Explainable stacking-based model for predicting hospital readmission for diabetic patients. *Information*, 13(9), 436.
+- Prentice, R. L. & Gloeckler, L. A. (1978). Regression analysis of grouped survival data with application to breast cancer data. *Biometrics*, 34(1), 57–67.
+- AHRQ. IDEAL Discharge Planning. Agency for Healthcare Research and Quality.
+- American Diabetes Association. Standards of Care in Diabetes — Diabetes Self-Management Education and Support (DSMES).
